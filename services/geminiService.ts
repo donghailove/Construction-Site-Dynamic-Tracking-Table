@@ -20,6 +20,8 @@ export const generateSiteReport = async (segments: SegmentData[]): Promise<strin
       You are a senior construction project manager assistant. 
       Analyze the following construction site data and generate a professional Daily Progress Report in English.
       
+      IMPORTANT: Do NOT include a main title/heading (e.g., "# Daily Progress Report"). Start directly with the first section.
+
       The report should include:
       1. **Overall Progress Summary**: High-level view of how many segments are active, completed, or suspended.
       2. **Key Activities Today**: Highlight segments currently in 'In Progress'.
