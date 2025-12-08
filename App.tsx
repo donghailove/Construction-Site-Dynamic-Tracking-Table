@@ -283,8 +283,8 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20 relative">
       {/* Top Navigation */}
-      <nav className={`sticky top-0 z-30 border-b px-4 py-3 shadow-sm backdrop-blur-md transition-colors ${isAdmin ? 'bg-amber-50/90 border-amber-200' : 'bg-white/80 border-slate-200'}`}>
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <nav className={`sticky top-0 z-30 border-b px-6 py-3 shadow-sm backdrop-blur-md transition-colors ${isAdmin ? 'bg-amber-50/90 border-amber-200' : 'bg-white/80 border-slate-200'}`}>
+        <div className="w-full flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <div className="bg-blue-600 p-2 rounded-lg">
               <LayoutDashboard className="w-5 h-5 text-white" />
@@ -361,7 +361,7 @@ const App: React.FC = () => {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="w-full px-6 py-8">
         <DashboardStats data={segments} />
 
         {/* Controls */}
@@ -395,11 +395,11 @@ const App: React.FC = () => {
             <table className="w-full text-left border-collapse table-fixed min-w-[1000px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
-                  <th className="px-4 py-4 w-14 sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center">No.</th>
+                  <th className="px-4 py-4 w-12 sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center">Segment</th>
                   {PART_OPTIONS.map(part => {
-                    // Adjust widths: Blinding & Waterproofing narrower, Slabs/Walls wider
+                    // Adjust widths: Blinding & Waterproofing wider (15%), Others (20%)
                     const isNarrow = part === SegmentPart.BLINDING || part === SegmentPart.WATERPROOFING;
-                    const widthClass = isNarrow ? "w-[11%]" : "w-[23%]";
+                    const widthClass = isNarrow ? "w-[15%]" : "w-[20%]";
                     return (
                       <th key={part} className={`px-4 py-4 text-center ${widthClass}`}>{part}</th>
                     );
