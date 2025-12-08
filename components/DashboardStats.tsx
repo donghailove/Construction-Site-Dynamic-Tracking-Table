@@ -1,14 +1,26 @@
 import React from 'react';
-import { SegmentData, ConstructionStatus } from '../types';
-import { Activity, CheckCircle2, AlertTriangle, Hammer, XCircle } from 'lucide-react';
+import { SegmentData, ConstructionStatus, SegmentPart } from '../types';
+import { Activity, AlertTriangle, Hammer, XCircle } from 'lucide-react';
 
 interface DashboardStatsProps {
   data: SegmentData[];
 }
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ data }) => {
-  const total = data.length;
-  const completed = data.filter(d => d.status === ConstructionStatus.COMPLETED).length;
+  // Filter for main structural parts only for Overall Progress
+  const mainStructuralParts = data.filter(d => 
+    d.part === SegmentPart.BOTTOM_SLAB || 
+    d.part === SegmentPart.SIDE_WALL || 
+    d.part === SegmentPart.TOP_SLAB
+  );
+
+  const totalMain = mainStructuralParts.length;
+  const completedMain = mainStructuralParts.filter(d => d.status === ConstructionStatus.COMPLETED).length;
+  
+  // Calculate simple overall progress average based ONLY on main parts
+  const avgProgress = totalMain > 0 ? Math.round(mainStructuralParts.reduce((acc, curr) => acc + curr.progress, 0) / totalMain) : 0;
+
+  // For other stats, we might still want to know if *any* part is active/suspended
   // Active means not completed, not suspended, and started
   const active = data.filter(d => 
     d.status !== ConstructionStatus.NOT_STARTED && 
@@ -27,15 +39,11 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ data }) => {
   
   const suspended = data.filter(d => d.status === ConstructionStatus.SUSPENDED).length;
 
-  // Calculate simple overall progress average (excluding Not Started for better accuracy or include all?)
-  // Including all gives a true project completion status
-  const avgProgress = total > 0 ? Math.round(data.reduce((acc, curr) => acc + curr.progress, 0) / total) : 0;
-
   const stats = [
     {
       label: 'Overall Progress',
       value: `${avgProgress}%`,
-      sub: `${completed}/${total} Parts Done`,
+      sub: `${completedMain}/${totalMain} Main Parts Done`,
       icon: Activity,
       color: 'text-blue-600',
       bg: 'bg-blue-50'
