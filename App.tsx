@@ -12,7 +12,8 @@ import {
   Unlock,
   Cloud,
   CloudOff,
-  Loader2
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import { 
   collection, 
@@ -32,6 +33,7 @@ import { DashboardStats } from './components/DashboardStats';
 import { EditModal } from './components/EditModal';
 import { AIReport } from './components/AIReport';
 import { SetupGuide } from './components/SetupGuide';
+import { Toast, ToastType } from './components/Toast';
 import { generateSiteReport } from './services/geminiService';
 import { db } from './services/firebase';
 
@@ -54,6 +56,9 @@ const App: React.FC = () => {
 
   // Admin State
   const [isAdmin, setIsAdmin] = useState(false);
+
+  // Toast State
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   // Sync State
   const isSyncEnabled = !!db;
@@ -156,9 +161,11 @@ const App: React.FC = () => {
           batch.delete(doc.ref);
         });
         await batch.commit();
+        setToast({ message: `Deleted records for ${name}`, type: 'success' });
       } else {
         // Delete Local
         setSegments(segments.filter(s => s.name !== name));
+        setToast({ message: `Deleted records for ${name}`, type: 'success' });
       }
     }
   };
@@ -215,7 +222,7 @@ const App: React.FC = () => {
       // Check for duplicates locally to prevent UI glitch before sync
       const exists = segments.some(s => s.name === segmentToSave.name && s.part === segmentToSave.part && s.id !== editingSegment?.id);
       if (exists) {
-        alert('Record for this part already exists. Please edit the existing one.');
+        setToast({ message: 'Record for this part already exists.', type: 'error' });
         return;
       }
     }
@@ -224,9 +231,10 @@ const App: React.FC = () => {
       // Save to Firebase
       try {
         await setDoc(doc(db, "segments", segmentToSave.id), segmentToSave);
+        setToast({ message: 'Data saved to Cloud successfully', type: 'success' });
       } catch (e) {
         console.error("Error saving to DB", e);
-        alert("Failed to save to cloud. Check console.");
+        setToast({ message: 'Failed to save to cloud.', type: 'error' });
       }
     } else {
       // Save Local
@@ -235,6 +243,7 @@ const App: React.FC = () => {
       } else {
         setSegments([...segments, segmentToSave]);
       }
+      setToast({ message: 'Data saved locally', type: 'success' });
     }
   };
 
@@ -249,16 +258,14 @@ const App: React.FC = () => {
   };
 
   const handleAdminToggle = () => {
-    if (isAdmin) {
-      setIsAdmin(false);
-    } else {
-      const password = prompt("Enter Admin Password to Edit:");
-      // Simple hardcoded password check
-      if (password === "admin888") {
-        setIsAdmin(true);
-      } else if (password !== null) {
-        alert("Incorrect password");
-      }
+    // Only used to enter admin mode now
+    const password = prompt("Enter Admin Password to Edit:");
+    // Simple hardcoded password check
+    if (password === "admin888") {
+      setIsAdmin(true);
+      setToast({ message: 'Admin Mode Unlocked', type: 'success' });
+    } else if (password !== null) {
+      setToast({ message: 'Incorrect Password', type: 'error' });
     }
   };
 
@@ -274,9 +281,9 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20">
+    <div className="min-h-screen bg-slate-50/50 pb-20 relative">
       {/* Top Navigation */}
-      <nav className="sticky top-0 z-30 bg-white/80 border-b border-slate-200 px-4 py-3 shadow-sm backdrop-blur-md">
+      <nav className={`sticky top-0 z-30 border-b px-4 py-3 shadow-sm backdrop-blur-md transition-colors ${isAdmin ? 'bg-amber-50/90 border-amber-200' : 'bg-white/80 border-slate-200'}`}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <div className="bg-blue-600 p-2 rounded-lg">
@@ -313,14 +320,35 @@ const App: React.FC = () => {
                {new Date().toLocaleDateString()}
              </div>
              
-             {/* Admin Toggle */}
-             <button
-               onClick={handleAdminToggle}
-               className={`p-2 rounded-lg transition-colors ${isAdmin ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-               title={isAdmin ? "Lock Editing" : "Unlock Editing"}
-             >
-               {isAdmin ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-             </button>
+             {/* Admin Controls */}
+             {isAdmin ? (
+               <div className="flex items-center space-x-2 animate-in fade-in slide-in-from-right-5 duration-200">
+                 <button
+                   onClick={() => setIsAdmin(false)}
+                   className="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors shadow-sm"
+                 >
+                   Cancel
+                 </button>
+                 <button
+                   onClick={() => {
+                     setIsAdmin(false);
+                     setToast({ message: 'Session completed. Editing locked.', type: 'info' });
+                   }}
+                   className="flex items-center px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors"
+                 >
+                   <CheckCircle2 className="w-4 h-4 mr-2" />
+                   Save & Finish
+                 </button>
+               </div>
+             ) : (
+               <button
+                 onClick={handleAdminToggle}
+                 className="flex items-center px-3 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors shadow-sm"
+               >
+                 <Lock className="w-4 h-4 mr-2" />
+                 Admin Mode
+               </button>
+             )}
 
              <button 
               onClick={handleGenerateReport}
@@ -353,7 +381,7 @@ const App: React.FC = () => {
           {isAdmin && (
             <button 
               onClick={handleAddNewSegment}
-              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors w-full md:w-auto justify-center"
+              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors w-full md:w-auto justify-center animate-in fade-in"
             >
               <Plus className="w-5 h-5 mr-1.5" />
               Add Segment
@@ -362,12 +390,11 @@ const App: React.FC = () => {
         </div>
 
         {/* Matrix View */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-300 ${isAdmin ? 'border-amber-200 ring-4 ring-amber-50/50' : 'border-slate-200'}`}>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
-                  {/* Reduced width from w-32 to w-20 */}
                   <th className="px-4 py-4 w-20 sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center">No.</th>
                   {PART_OPTIONS.map(part => (
                     <th key={part} className="px-4 py-4 text-center min-w-[140px]">{part}</th>
@@ -386,7 +413,6 @@ const App: React.FC = () => {
                 ) : (
                   filteredGroupKeys.map(name => (
                     <tr key={name} className="hover:bg-slate-50/50 transition-colors">
-                      {/* Reduced font size to text-sm and simplified name display */}
                       <td className="px-4 py-4 text-sm font-bold text-slate-700 text-center sticky left-0 bg-white hover:bg-slate-50 transition-colors z-10 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                         {name.replace(/Segment\s?/i, '')}
                       </td>
@@ -402,7 +428,7 @@ const App: React.FC = () => {
                                 onClick={() => handleCellClick(name, part, data)}
                                 className={`
                                   relative p-3 rounded-xl border transition-all 
-                                  ${isAdmin ? 'cursor-pointer hover:shadow-md hover:border-blue-300' : 'cursor-default'}
+                                  ${isAdmin ? 'cursor-pointer hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5' : 'cursor-default'}
                                   ${statusCfg.bgColor} border-slate-200 min-h-[120px]
                                 `}
                               >
@@ -411,7 +437,6 @@ const App: React.FC = () => {
                                     <StatusIcon className="w-4 h-4" />
                                     <span className="text-xs font-bold">{statusCfg.label}</span>
                                   </div>
-                                  {/* Percentage Display */}
                                   <span className={`text-xs font-bold ${data.progress === 100 ? 'text-emerald-600' : 'text-slate-500'}`}>
                                     {data.progress}%
                                   </span>
@@ -489,6 +514,14 @@ const App: React.FC = () => {
         isOpen={isSetupOpen}
         onClose={() => setIsSetupOpen(false)}
       />
+
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
     </div>
   );
 };
