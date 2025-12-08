@@ -4,12 +4,7 @@ import { STATUS_CONFIG } from "../constants";
 
 export const generateSiteReport = async (segments: SegmentData[]): Promise<string> => {
   try {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      return "Please configure API_KEY in the environment to use AI reporting.";
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     // Prepare data for the prompt
     const summaryData = segments.map(s => ({
@@ -51,10 +46,7 @@ export const generateSiteReport = async (segments: SegmentData[]): Promise<strin
 
 export const analyzeSegmentRisk = async (segment: SegmentData): Promise<string> => {
   try {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return "API Key missing";
-
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `
       Analyze the risk for this specific construction segment:
       Name: ${segment.name}

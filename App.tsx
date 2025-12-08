@@ -31,6 +31,7 @@ import { STATUS_CONFIG, MOCK_INITIAL_DATA, PART_OPTIONS } from './constants';
 import { DashboardStats } from './components/DashboardStats';
 import { EditModal } from './components/EditModal';
 import { AIReport } from './components/AIReport';
+import { SetupGuide } from './components/SetupGuide';
 import { generateSiteReport } from './services/geminiService';
 import { db } from './services/firebase';
 
@@ -47,6 +48,9 @@ const App: React.FC = () => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportContent, setReportContent] = useState('');
+
+  // Setup Guide Modal
+  const [isSetupOpen, setIsSetupOpen] = useState(false);
 
   // Admin State
   const [isAdmin, setIsAdmin] = useState(false);
@@ -281,7 +285,14 @@ const App: React.FC = () => {
             <h1 className="text-xl font-bold text-slate-800 tracking-tight">SiteTrack Pro</h1>
             
             {/* Sync Status Indicator */}
-            <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium border ${isSyncEnabled ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+            <button 
+              onClick={() => !isSyncEnabled && setIsSetupOpen(true)}
+              className={`flex items-center px-2 py-1 rounded-full text-xs font-medium border transition-all 
+                ${isSyncEnabled 
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 cursor-default' 
+                  : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200 cursor-pointer'
+                }`}
+            >
               {isSyncEnabled ? (
                 <>
                   <Cloud className="w-3 h-3 mr-1" />
@@ -293,7 +304,7 @@ const App: React.FC = () => {
                   Local Mode
                 </>
               )}
-            </div>
+            </button>
           </div>
 
           <div className="flex items-center space-x-3">
@@ -472,6 +483,11 @@ const App: React.FC = () => {
         onClose={() => setIsReportModalOpen(false)}
         isLoading={isGeneratingReport}
         reportContent={reportContent}
+      />
+
+      <SetupGuide
+        isOpen={isSetupOpen}
+        onClose={() => setIsSetupOpen(false)}
       />
     </div>
   );
