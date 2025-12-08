@@ -13,6 +13,7 @@ export enum ConstructionStatus {
   FORMWORK = 'FORMWORK',
   POURING = 'POURING',
   LAYING = 'LAYING', // Added for Waterproofing
+  INSPECTION = 'INSPECTION', // Added for Inspection
   CURING = 'CURING',
   COMPLETED = 'COMPLETED',
   SUSPENDED = 'SUSPENDED'

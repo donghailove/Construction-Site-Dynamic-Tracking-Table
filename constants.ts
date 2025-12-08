@@ -8,7 +8,8 @@ import {
   Clock, 
   CheckCircle2,
   XCircle,
-  Layers // For Laying (Waterproofing)
+  Layers, // For Laying (Waterproofing)
+  ClipboardCheck // For Inspection
 } from 'lucide-react';
 
 export const STATUS_CONFIG: Record<ConstructionStatus, { label: string; color: string; bgColor: string; icon: any }> = {
@@ -47,6 +48,12 @@ export const STATUS_CONFIG: Record<ConstructionStatus, { label: string; color: s
     color: 'text-cyan-600', 
     bgColor: 'bg-cyan-100',
     icon: Layers
+  },
+  [ConstructionStatus.INSPECTION]: { 
+    label: 'Inspection (In Progress)', 
+    color: 'text-pink-600', 
+    bgColor: 'bg-pink-100',
+    icon: ClipboardCheck
   },
   [ConstructionStatus.CURING]: { 
     label: 'Curing', 
