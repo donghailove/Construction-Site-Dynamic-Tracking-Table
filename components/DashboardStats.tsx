@@ -16,7 +16,14 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ data }) => {
     d.status !== ConstructionStatus.SUSPENDED
   ).length;
   
-  const pouring = data.filter(d => d.status === ConstructionStatus.POURING).length;
+  // Count all In Progress types (Excavation, Rebar, Formwork, Pouring)
+  const inProgress = data.filter(d => 
+    d.status === ConstructionStatus.EXCAVATION ||
+    d.status === ConstructionStatus.REBAR ||
+    d.status === ConstructionStatus.FORMWORK ||
+    d.status === ConstructionStatus.POURING
+  ).length;
+  
   const suspended = data.filter(d => d.status === ConstructionStatus.SUSPENDED).length;
 
   // Calculate simple overall progress average (excluding Not Started for better accuracy or include all?)
@@ -42,11 +49,11 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ data }) => {
     },
     {
       label: 'In Progress',
-      value: pouring,
+      value: inProgress,
       sub: 'Critical activity',
       icon: AlertTriangle, 
-      color: pouring > 0 ? 'text-purple-600' : 'text-slate-400',
-      bg: pouring > 0 ? 'bg-purple-50' : 'bg-slate-50'
+      color: inProgress > 0 ? 'text-purple-600' : 'text-slate-400',
+      bg: inProgress > 0 ? 'bg-purple-50' : 'bg-slate-50'
     },
     {
       label: 'Suspended / Delay',

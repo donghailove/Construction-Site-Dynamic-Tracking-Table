@@ -18,25 +18,25 @@ export const STATUS_CONFIG: Record<ConstructionStatus, { label: string; color: s
     icon: CircleDashed 
   },
   [ConstructionStatus.EXCAVATION]: { 
-    label: 'Excavation', 
+    label: 'Excavation (In Progress)', 
     color: 'text-amber-600', 
     bgColor: 'bg-amber-100',
     icon: Shovel
   },
   [ConstructionStatus.REBAR]: { 
-    label: 'Rebar', 
+    label: 'Rebar (In Progress)', 
     color: 'text-blue-600', 
     bgColor: 'bg-blue-100',
     icon: Component
   },
   [ConstructionStatus.FORMWORK]: { 
-    label: 'Formwork', 
+    label: 'Formwork (In Progress)', 
     color: 'text-indigo-600', 
     bgColor: 'bg-indigo-100',
     icon: Square
   },
   [ConstructionStatus.POURING]: { 
-    label: 'In Progress', 
+    label: 'Pouring (In Progress)', 
     color: 'text-purple-600', 
     bgColor: 'bg-purple-100',
     icon: Droplets
