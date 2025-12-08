@@ -12,9 +12,10 @@ export enum ConstructionStatus {
   REBAR = 'REBAR',
   FORMWORK = 'FORMWORK',
   POURING = 'POURING',
+  LAYING = 'LAYING', // Added for Waterproofing
   CURING = 'CURING',
   COMPLETED = 'COMPLETED',
-  SUSPENDED = 'SUSPENDED' // Added for stopped work
+  SUSPENDED = 'SUSPENDED'
 }
 
 export interface SegmentData {

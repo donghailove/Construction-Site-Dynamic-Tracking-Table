@@ -16,12 +16,13 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ data }) => {
     d.status !== ConstructionStatus.SUSPENDED
   ).length;
   
-  // Count all In Progress types (Excavation, Rebar, Formwork, Pouring)
+  // Count all In Progress types (Excavation, Rebar, Formwork, Pouring, Laying)
   const inProgress = data.filter(d => 
     d.status === ConstructionStatus.EXCAVATION ||
     d.status === ConstructionStatus.REBAR ||
     d.status === ConstructionStatus.FORMWORK ||
-    d.status === ConstructionStatus.POURING
+    d.status === ConstructionStatus.POURING ||
+    d.status === ConstructionStatus.LAYING
   ).length;
   
   const suspended = data.filter(d => d.status === ConstructionStatus.SUSPENDED).length;

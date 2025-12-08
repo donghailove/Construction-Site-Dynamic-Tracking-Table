@@ -7,7 +7,8 @@ import {
   Droplets, 
   Clock, 
   CheckCircle2,
-  XCircle // For Suspended
+  XCircle,
+  Layers // For Laying (Waterproofing)
 } from 'lucide-react';
 
 export const STATUS_CONFIG: Record<ConstructionStatus, { label: string; color: string; bgColor: string; icon: any }> = {
@@ -40,6 +41,12 @@ export const STATUS_CONFIG: Record<ConstructionStatus, { label: string; color: s
     color: 'text-purple-600', 
     bgColor: 'bg-purple-100',
     icon: Droplets
+  },
+  [ConstructionStatus.LAYING]: { 
+    label: 'Laying (In Progress)', 
+    color: 'text-cyan-600', 
+    bgColor: 'bg-cyan-100',
+    icon: Layers
   },
   [ConstructionStatus.CURING]: { 
     label: 'Curing', 
@@ -120,14 +127,14 @@ const generateMockData = () => {
       bsStatus = ConstructionStatus.NOT_STARTED; bsRemark = "UAF blocking the access";
       swRemark = "waiting for slab compeltion";
     } else if (i === 36) {
-      wpStatus = ConstructionStatus.POURING; wpProg = 60; bsRemark = "1. waterproofing on-going\n2. 220 T rebar in waiting (Ultmost)";
+      wpStatus = ConstructionStatus.LAYING; wpProg = 60; bsRemark = "1. waterproofing on-going\n2. 220 T rebar in waiting (Ultmost)";
       bsStatus = ConstructionStatus.NOT_STARTED;
       swRemark = "waiting for slab compeltion";
     } else if (i === 37) {
       bsStatus = ConstructionStatus.NOT_STARTED; bsRemark = "to start after seg 36, 38 slabs completion";
       swRemark = "waiting for slab compeltion";
     } else if (i === 38) {
-      wpStatus = ConstructionStatus.POURING; wpProg = 60; bsRemark = "1. waterproofing on-going\n2. 220 T rebar frebarication done (CRIG), in trasportaiton";
+      wpStatus = ConstructionStatus.LAYING; wpProg = 60; bsRemark = "1. waterproofing on-going\n2. 220 T rebar frebarication done (CRIG), in trasportaiton";
       bsStatus = ConstructionStatus.NOT_STARTED;
       swRemark = "waiting for slab compeltion";
     } else if (i >= 39 && i <= 43) {
@@ -184,7 +191,7 @@ const generateMockData = () => {
       bsStatus = ConstructionStatus.NOT_STARTED; bsRemark = "1. to start after seg 63 backfilling completion";
       swRemark = "waiting for slab compeltion";
     } else if (i === 63) {
-      wpStatus = ConstructionStatus.POURING; wpProg = 50; 
+      wpStatus = ConstructionStatus.LAYING; wpProg = 50; 
       bsStatus = ConstructionStatus.NOT_STARTED; bsRemark = "1. AMC water proofing on-going;\n2. then backfilling\n3. to start after seg62, 64 compeltion.";
       swRemark = "waiting for slab compeltion";
     } else if (i === 64) {
