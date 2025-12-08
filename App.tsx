@@ -7,7 +7,9 @@ import {
   Edit3, 
   Trash2,
   CalendarDays,
-  MoreHorizontal
+  MoreHorizontal,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
 import { SegmentData, ConstructionStatus, SegmentPart } from './types';
@@ -34,6 +36,9 @@ const App: React.FC = () => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportContent, setReportContent] = useState('');
+
+  // Admin State
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('site_segments_v3', JSON.stringify(segments));
@@ -73,6 +78,9 @@ const App: React.FC = () => {
   };
 
   const handleCellClick = (name: string, part: SegmentPart, data?: SegmentData) => {
+    // Only allow edit if admin
+    if (!isAdmin) return;
+
     if (data) {
       setEditingSegment(data);
     } else {
@@ -136,6 +144,20 @@ const App: React.FC = () => {
     }
   };
 
+  const handleAdminToggle = () => {
+    if (isAdmin) {
+      setIsAdmin(false);
+    } else {
+      const password = prompt("Enter Admin Password to Edit:");
+      // Simple hardcoded password check
+      if (password === "admin888") {
+        setIsAdmin(true);
+      } else if (password !== null) {
+        alert("Incorrect password");
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Top Navigation */}
@@ -152,12 +174,22 @@ const App: React.FC = () => {
                <CalendarDays className="w-4 h-4 mr-2" />
                {new Date().toLocaleDateString()}
              </div>
+             
+             {/* Admin Toggle */}
+             <button
+               onClick={handleAdminToggle}
+               className={`p-2 rounded-lg transition-colors ${isAdmin ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+               title={isAdmin ? "Lock Editing" : "Unlock Editing"}
+             >
+               {isAdmin ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+             </button>
+
              <button 
               onClick={handleGenerateReport}
               className="flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              AI Daily Report
+              AI Report
             </button>
           </div>
         </div>
@@ -178,13 +210,17 @@ const App: React.FC = () => {
               onChange={(e) => setFilter(e.target.value)}
             />
           </div>
-          <button 
-            onClick={handleAddNewSegment}
-            className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors w-full md:w-auto justify-center"
-          >
-            <Plus className="w-5 h-5 mr-1.5" />
-            Add Segment
-          </button>
+          
+          {/* Only show Add button if Admin */}
+          {isAdmin && (
+            <button 
+              onClick={handleAddNewSegment}
+              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors w-full md:w-auto justify-center"
+            >
+              <Plus className="w-5 h-5 mr-1.5" />
+              Add Segment
+            </button>
+          )}
         </div>
 
         {/* Matrix View */}
@@ -198,14 +234,15 @@ const App: React.FC = () => {
                   {PART_OPTIONS.map(part => (
                     <th key={part} className="px-4 py-4 text-center min-w-[140px]">{part}</th>
                   ))}
-                  <th className="px-4 py-4 w-20 text-center">Actions</th>
+                  {/* Only show Actions column if Admin */}
+                  {isAdmin && <th className="px-4 py-4 w-20 text-center">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredGroupKeys.length === 0 ? (
                   <tr>
-                    <td colSpan={PART_OPTIONS.length + 2} className="px-6 py-12 text-center text-slate-400">
-                      No data found. Try adding a new segment.
+                    <td colSpan={PART_OPTIONS.length + (isAdmin ? 2 : 1)} className="px-6 py-12 text-center text-slate-400">
+                      No data found.
                     </td>
                   </tr>
                 ) : (
@@ -226,8 +263,9 @@ const App: React.FC = () => {
                               <div 
                                 onClick={() => handleCellClick(name, part, data)}
                                 className={`
-                                  relative p-3 rounded-xl border transition-all cursor-pointer group hover:shadow-md
-                                  ${statusCfg.bgColor} border-slate-200 hover:border-blue-300 min-h-[120px]
+                                  relative p-3 rounded-xl border transition-all 
+                                  ${isAdmin ? 'cursor-pointer hover:shadow-md hover:border-blue-300' : 'cursor-default'}
+                                  ${statusCfg.bgColor} border-slate-200 min-h-[120px]
                                 `}
                               >
                                 <div className="flex justify-between items-start mb-2">
@@ -256,26 +294,36 @@ const App: React.FC = () => {
                                 </div>
                               </div>
                             ) : (
-                              <button
-                                onClick={() => handleCellClick(name, part)}
-                                className="w-full h-full min-h-[120px] border-2 border-dashed border-slate-100 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/50 transition-all gap-1 group"
-                              >
-                                <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                <span className="text-xs font-medium">Add</span>
-                              </button>
+                              // Empty state handling
+                              isAdmin ? (
+                                <button
+                                  onClick={() => handleCellClick(name, part)}
+                                  className="w-full h-full min-h-[120px] border-2 border-dashed border-slate-100 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/50 transition-all gap-1 group"
+                                >
+                                  <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                  <span className="text-xs font-medium">Add</span>
+                                </button>
+                              ) : (
+                                <div className="w-full h-full min-h-[120px] flex items-center justify-center text-slate-200">
+                                  -
+                                </div>
+                              )
                             )}
                           </td>
                         );
                       })}
-                      <td className="px-4 py-4 text-center">
-                        <button 
-                          onClick={() => handleDeleteGroup(name)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete Row"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
+                      {/* Only show delete button column if Admin */}
+                      {isAdmin && (
+                        <td className="px-4 py-4 text-center">
+                          <button 
+                            onClick={() => handleDeleteGroup(name)}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Row"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
