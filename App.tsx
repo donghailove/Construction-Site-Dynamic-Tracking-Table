@@ -9,8 +9,22 @@ import {
   CalendarDays,
   MoreHorizontal,
   Lock,
-  Unlock
+  Unlock,
+  Cloud,
+  CloudOff,
+  Loader2
 } from 'lucide-react';
+import { 
+  collection, 
+  onSnapshot, 
+  doc, 
+  setDoc, 
+  deleteDoc, 
+  query, 
+  where, 
+  getDocs,
+  writeBatch
+} from 'firebase/firestore';
 
 import { SegmentData, ConstructionStatus, SegmentPart } from './types';
 import { STATUS_CONFIG, MOCK_INITIAL_DATA, PART_OPTIONS } from './constants';
@@ -18,16 +32,13 @@ import { DashboardStats } from './components/DashboardStats';
 import { EditModal } from './components/EditModal';
 import { AIReport } from './components/AIReport';
 import { generateSiteReport } from './services/geminiService';
+import { db } from './services/firebase';
 
 const App: React.FC = () => {
-  const [segments, setSegments] = useState<SegmentData[]>(() => {
-    // Changed key to force refresh for new data set
-    const saved = localStorage.getItem('site_segments_v3');
-    if (saved) {
-       return JSON.parse(saved);
-    }
-    return MOCK_INITIAL_DATA;
-  });
+  // Loading state for initial data fetch
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const [segments, setSegments] = useState<SegmentData[]>([]);
   
   const [filter, setFilter] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -40,9 +51,68 @@ const App: React.FC = () => {
   // Admin State
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Sync State
+  const isSyncEnabled = !!db;
+
   useEffect(() => {
-    localStorage.setItem('site_segments_v3', JSON.stringify(segments));
-  }, [segments]);
+    let unsubscribe: () => void;
+
+    const initializeData = async () => {
+      if (isSyncEnabled) {
+        // --- FIREBASE MODE ---
+        const segmentsRef = collection(db, 'segments');
+        
+        unsubscribe = onSnapshot(segmentsRef, async (snapshot) => {
+          if (snapshot.empty) {
+            // Seed data if DB is empty
+            // Check local storage first to migrate existing work
+            const localData = localStorage.getItem('site_segments_v3');
+            const dataToSeed = localData ? JSON.parse(localData) : MOCK_INITIAL_DATA;
+            
+            console.log("Database empty. Seeding with initial data...", dataToSeed.length);
+            
+            // Use batch for better performance
+            const batch = writeBatch(db);
+            dataToSeed.forEach((seg: SegmentData) => {
+              const docRef = doc(db, 'segments', seg.id);
+              batch.set(docRef, seg);
+            });
+            await batch.commit();
+            // Data will appear in next snapshot update
+          } else {
+            const remoteData = snapshot.docs.map(doc => doc.data() as SegmentData);
+            setSegments(remoteData);
+            setIsLoading(false);
+          }
+        }, (error) => {
+          console.error("Sync error:", error);
+          setIsLoading(false);
+        });
+      } else {
+        // --- LOCAL STORAGE MODE ---
+        const saved = localStorage.getItem('site_segments_v3');
+        if (saved) {
+           setSegments(JSON.parse(saved));
+        } else {
+           setSegments(MOCK_INITIAL_DATA);
+        }
+        setIsLoading(false);
+      }
+    };
+
+    initializeData();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [isSyncEnabled]);
+
+  // Save to LocalStorage as backup/fallback whenever segments change
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem('site_segments_v3', JSON.stringify(segments));
+    }
+  }, [segments, isLoading]);
 
   // Group segments by name
   const groupedSegments = useMemo(() => {
@@ -71,9 +141,21 @@ const App: React.FC = () => {
     });
   }, [groupedSegments, filter]);
 
-  const handleDeleteGroup = (name: string) => {
+  const handleDeleteGroup = async (name: string) => {
     if (confirm(`Are you sure you want to delete all records for "${name}"?`)) {
-      setSegments(segments.filter(s => s.name !== name));
+      if (isSyncEnabled) {
+        // Delete from Firebase
+        const q = query(collection(db, "segments"), where("name", "==", name));
+        const snapshot = await getDocs(q);
+        const batch = writeBatch(db);
+        snapshot.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+        await batch.commit();
+      } else {
+        // Delete Local
+        setSegments(segments.filter(s => s.name !== name));
+      }
     }
   };
 
@@ -103,34 +185,52 @@ const App: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSave = (data: Partial<SegmentData>) => {
+  const handleSave = async (data: Partial<SegmentData>) => {
+    const timestamp = new Date().toISOString();
+    let segmentToSave: SegmentData;
+
     if (editingSegment && editingSegment.id) {
       // Update existing record
-      setSegments(segments.map(s => s.id === editingSegment.id ? { 
-        ...s, 
+      segmentToSave = { 
+        ...editingSegment, 
         ...data, 
-        lastUpdated: new Date().toISOString() 
-      } as SegmentData : s));
+        lastUpdated: timestamp 
+      } as SegmentData;
     } else {
       // Create new record
-      const newSegment: SegmentData = {
-        id: Date.now().toString(),
+      segmentToSave = {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         name: data.name || editingSegment?.name || 'New Segment',
         part: data.part || editingSegment?.part || SegmentPart.BOTTOM_SLAB,
         status: data.status || ConstructionStatus.NOT_STARTED,
         progress: data.progress || 0,
         remarks: data.remarks || '',
-        lastUpdated: new Date().toISOString()
+        lastUpdated: timestamp
       };
       
-      // Check if this part already exists for this segment to avoid duplicates
-      const exists = segments.some(s => s.name === newSegment.name && s.part === newSegment.part);
+      // Check for duplicates locally to prevent UI glitch before sync
+      const exists = segments.some(s => s.name === segmentToSave.name && s.part === segmentToSave.part && s.id !== editingSegment?.id);
       if (exists) {
         alert('Record for this part already exists. Please edit the existing one.');
         return;
       }
-      
-      setSegments([...segments, newSegment]);
+    }
+
+    if (isSyncEnabled) {
+      // Save to Firebase
+      try {
+        await setDoc(doc(db, "segments", segmentToSave.id), segmentToSave);
+      } catch (e) {
+        console.error("Error saving to DB", e);
+        alert("Failed to save to cloud. Check console.");
+      }
+    } else {
+      // Save Local
+      if (editingSegment && editingSegment.id) {
+        setSegments(segments.map(s => s.id === editingSegment.id ? segmentToSave : s));
+      } else {
+        setSegments([...segments, segmentToSave]);
+      }
     }
   };
 
@@ -158,6 +258,17 @@ const App: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center space-y-3">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Loading Site Data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Top Navigation */}
@@ -168,7 +279,23 @@ const App: React.FC = () => {
               <LayoutDashboard className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-xl font-bold text-slate-800 tracking-tight">SiteTrack Pro</h1>
+            
+            {/* Sync Status Indicator */}
+            <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium border ${isSyncEnabled ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+              {isSyncEnabled ? (
+                <>
+                  <Cloud className="w-3 h-3 mr-1" />
+                  Live Sync
+                </>
+              ) : (
+                <>
+                  <CloudOff className="w-3 h-3 mr-1" />
+                  Local Mode
+                </>
+              )}
+            </div>
           </div>
+
           <div className="flex items-center space-x-3">
              <div className="hidden md:flex items-center px-3 py-1 bg-slate-100 rounded-full text-sm text-slate-500 border border-slate-200">
                <CalendarDays className="w-4 h-4 mr-2" />
@@ -273,7 +400,7 @@ const App: React.FC = () => {
                                     <StatusIcon className="w-4 h-4" />
                                     <span className="text-xs font-bold">{statusCfg.label}</span>
                                   </div>
-                                  {/* Added Percentage Display */}
+                                  {/* Percentage Display */}
                                   <span className={`text-xs font-bold ${data.progress === 100 ? 'text-emerald-600' : 'text-slate-500'}`}>
                                     {data.progress}%
                                   </span>
