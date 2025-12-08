@@ -396,9 +396,14 @@ const App: React.FC = () => {
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
                   <th className="px-4 py-4 w-20 sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center">No.</th>
-                  {PART_OPTIONS.map(part => (
-                    <th key={part} className="px-4 py-4 text-center w-[18%]">{part}</th>
-                  ))}
+                  {PART_OPTIONS.map(part => {
+                    // Adjust widths: Blinding & Waterproofing narrower, Slabs/Walls wider
+                    const isNarrow = part === SegmentPart.BLINDING || part === SegmentPart.WATERPROOFING;
+                    const widthClass = isNarrow ? "w-[12%]" : "w-[22%]";
+                    return (
+                      <th key={part} className={`px-4 py-4 text-center ${widthClass}`}>{part}</th>
+                    );
+                  })}
                   {/* Only show Actions column if Admin */}
                   {isAdmin && <th className="px-4 py-4 w-20 text-center">Actions</th>}
                 </tr>
