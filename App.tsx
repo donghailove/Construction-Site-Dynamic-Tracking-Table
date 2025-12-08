@@ -392,14 +392,14 @@ const App: React.FC = () => {
         {/* Matrix View */}
         <div className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-300 ${isAdmin ? 'border-amber-200 ring-4 ring-amber-50/50' : 'border-slate-200'}`}>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse table-fixed min-w-[1500px]">
+            <table className="w-full text-left border-collapse table-fixed min-w-[1000px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
-                  <th className="px-4 py-4 w-20 sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center">No.</th>
+                  <th className="px-4 py-4 w-14 sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center">No.</th>
                   {PART_OPTIONS.map(part => {
                     // Adjust widths: Blinding & Waterproofing narrower, Slabs/Walls wider
                     const isNarrow = part === SegmentPart.BLINDING || part === SegmentPart.WATERPROOFING;
-                    const widthClass = isNarrow ? "w-[12%]" : "w-[22%]";
+                    const widthClass = isNarrow ? "w-[11%]" : "w-[23%]";
                     return (
                       <th key={part} className={`px-4 py-4 text-center ${widthClass}`}>{part}</th>
                     );
