@@ -395,11 +395,11 @@ const App: React.FC = () => {
             <table className="w-full text-left border-collapse table-fixed min-w-[1000px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
-                  <th className="px-4 py-4 w-12 sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center">Segment</th>
+                  <th className="px-1 py-4 w-[60px] sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center">Segment</th>
                   {PART_OPTIONS.map(part => {
-                    // Adjust widths: Blinding & Waterproofing wider (15%), Others (20%)
+                    // Adjust widths: Blinding & Waterproofing wider (15%), Others (21%)
                     const isNarrow = part === SegmentPart.BLINDING || part === SegmentPart.WATERPROOFING;
-                    const widthClass = isNarrow ? "w-[15%]" : "w-[20%]";
+                    const widthClass = isNarrow ? "w-[15%]" : "w-[21%]";
                     return (
                       <th key={part} className={`px-4 py-4 text-center ${widthClass}`}>{part}</th>
                     );
@@ -418,7 +418,7 @@ const App: React.FC = () => {
                 ) : (
                   filteredGroupKeys.map(name => (
                     <tr key={name} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-4 py-4 text-sm font-bold text-slate-700 text-center sticky left-0 bg-white hover:bg-slate-50 transition-colors z-10 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                      <td className="px-1 py-4 text-sm font-bold text-slate-700 text-center sticky left-0 bg-white hover:bg-slate-50 transition-colors z-10 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                         {name.replace(/Segment\s?/i, '')}
                       </td>
                       {PART_OPTIONS.map(part => {
