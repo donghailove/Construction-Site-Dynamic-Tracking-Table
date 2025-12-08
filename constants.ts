@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   XCircle,
   Layers, // For Laying (Waterproofing)
-  ClipboardCheck // For Inspection
+  ClipboardCheck, // For Inspection
+  Grid // For Scaffolding
 } from 'lucide-react';
 
 export const STATUS_CONFIG: Record<ConstructionStatus, { label: string; color: string; bgColor: string; icon: any }> = {
@@ -36,6 +37,12 @@ export const STATUS_CONFIG: Record<ConstructionStatus, { label: string; color: s
     color: 'text-indigo-600', 
     bgColor: 'bg-indigo-100',
     icon: Square
+  },
+  [ConstructionStatus.SCAFFOLDING]: { 
+    label: 'Scaffolding (In Progress)', 
+    color: 'text-orange-600', 
+    bgColor: 'bg-orange-100',
+    icon: Grid
   },
   [ConstructionStatus.POURING]: { 
     label: 'Pouring (In Progress)', 

@@ -11,9 +11,10 @@ export enum ConstructionStatus {
   EXCAVATION = 'EXCAVATION',
   REBAR = 'REBAR',
   FORMWORK = 'FORMWORK',
+  SCAFFOLDING = 'SCAFFOLDING', // Added for Scaffolding
   POURING = 'POURING',
-  LAYING = 'LAYING', // Added for Waterproofing
-  INSPECTION = 'INSPECTION', // Added for Inspection
+  LAYING = 'LAYING',
+  INSPECTION = 'INSPECTION',
   CURING = 'CURING',
   COMPLETED = 'COMPLETED',
   SUSPENDED = 'SUSPENDED'
