@@ -392,12 +392,12 @@ const App: React.FC = () => {
         {/* Matrix View */}
         <div className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-300 ${isAdmin ? 'border-amber-200 ring-4 ring-amber-50/50' : 'border-slate-200'}`}>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[1000px]">
+            <table className="w-full text-left border-collapse table-fixed min-w-[1500px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
                   <th className="px-4 py-4 w-20 sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center">No.</th>
                   {PART_OPTIONS.map(part => (
-                    <th key={part} className="px-4 py-4 text-center min-w-[140px]">{part}</th>
+                    <th key={part} className="px-4 py-4 text-center w-[18%]">{part}</th>
                   ))}
                   {/* Only show Actions column if Admin */}
                   {isAdmin && <th className="px-4 py-4 w-20 text-center">Actions</th>}
