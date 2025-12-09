@@ -13,7 +13,8 @@ import {
   Cloud,
   CloudOff,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Printer
 } from 'lucide-react';
 import { 
   collection, 
@@ -257,6 +258,10 @@ const App: React.FC = () => {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   const handleAdminToggle = () => {
     // Only used to enter admin mode now
     const password = prompt("Enter Admin Password to Edit:");
@@ -283,7 +288,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20 relative">
       {/* Top Navigation */}
-      <nav className={`sticky top-0 z-30 border-b px-6 py-3 shadow-sm backdrop-blur-md transition-colors ${isAdmin ? 'bg-amber-50/90 border-amber-200' : 'bg-white/80 border-slate-200'}`}>
+      <nav className={`sticky top-0 z-30 border-b px-6 py-3 shadow-sm backdrop-blur-md transition-colors ${isAdmin ? 'bg-amber-50/90 border-amber-200' : 'bg-white/80 border-slate-200'} print:hidden`}>
         <div className="w-full flex justify-between items-center">
           <div className="flex items-center space-x-3">
             {/* Logo and Title Restored */}
@@ -353,16 +358,34 @@ const App: React.FC = () => {
                </button>
              )}
 
-             {/* AI Report Button Hidden */}
+             {/* Print Button */}
+             <button 
+              onClick={handlePrint}
+              className="flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Print / PDF
+            </button>
           </div>
         </div>
       </nav>
 
-      <main className="w-full px-6 py-8">
+      {/* Print-only Header */}
+      <div className="hidden print:flex flex-col mb-8 pt-4 px-6 border-b border-slate-200 pb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="bg-blue-600 p-2 rounded-lg">
+            <LayoutDashboard className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="font-bold text-2xl text-slate-900">SiteTrack Pro</h1>
+        </div>
+        <p className="text-slate-500 font-medium">Construction Status Report - {new Date().toLocaleDateString()}</p>
+      </div>
+
+      <main className="w-full px-6 py-8 print:py-0">
         <DashboardStats data={segments} />
 
-        {/* Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        {/* Controls - Hidden when printing */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 print:hidden">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input 
@@ -387,12 +410,12 @@ const App: React.FC = () => {
         </div>
 
         {/* Matrix View */}
-        <div className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-300 ${isAdmin ? 'border-amber-200 ring-4 ring-amber-50/50' : 'border-slate-200'}`}>
+        <div className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-300 ${isAdmin ? 'border-amber-200 ring-4 ring-amber-50/50' : 'border-slate-200'} print:border-slate-300 print:ring-0 print:shadow-none`}>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse table-fixed min-w-[1000px]">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
-                  <th className="px-0.5 py-4 w-[60px] sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center tracking-tighter">Segment</th>
+                <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold print:bg-slate-100">
+                  <th className="px-0.5 py-4 w-[60px] sticky left-0 bg-slate-50 z-10 shadow-sm border-r border-slate-100 text-center tracking-tighter print:bg-slate-100 print:shadow-none">Segment</th>
                   {PART_OPTIONS.map(part => {
                     // Adjust widths: Blinding & Waterproofing wider (15%), Others (21%)
                     const isNarrow = part === SegmentPart.BLINDING || part === SegmentPart.WATERPROOFING;
@@ -402,7 +425,7 @@ const App: React.FC = () => {
                     );
                   })}
                   {/* Only show Actions column if Admin */}
-                  {isAdmin && <th className="px-4 py-4 w-20 text-center">Actions</th>}
+                  {isAdmin && <th className="px-4 py-4 w-20 text-center print:hidden">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -414,8 +437,8 @@ const App: React.FC = () => {
                   </tr>
                 ) : (
                   filteredGroupKeys.map(name => (
-                    <tr key={name} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-1 py-4 text-sm font-bold text-slate-700 text-center sticky left-0 bg-white hover:bg-slate-50 transition-colors z-10 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                    <tr key={name} className="hover:bg-slate-50/50 transition-colors break-inside-avoid">
+                      <td className="px-1 py-4 text-sm font-bold text-slate-700 text-center sticky left-0 bg-white hover:bg-slate-50 transition-colors z-10 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] print:shadow-none">
                         {name.replace(/Segment\s?/i, '')}
                       </td>
                       {PART_OPTIONS.map(part => {
@@ -431,28 +454,28 @@ const App: React.FC = () => {
                                 className={`
                                   relative p-3 rounded-xl border transition-all 
                                   ${isAdmin ? 'cursor-pointer hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5' : 'cursor-default'}
-                                  ${statusCfg.bgColor} border-slate-200 min-h-[120px]
+                                  ${statusCfg.bgColor} border-slate-200 min-h-[120px] print:break-inside-avoid print:border-slate-300
                                 `}
                               >
                                 <div className="flex justify-between items-start mb-2">
-                                  <div className={`flex items-center space-x-1.5 ${statusCfg.color}`}>
+                                  <div className={`flex items-center space-x-1.5 ${statusCfg.color} print:text-black`}>
                                     <StatusIcon className="w-4 h-4" />
                                     <span className="text-xs font-bold">{statusCfg.label}</span>
                                   </div>
-                                  <span className={`text-xs font-bold ${data.progress === 100 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                  <span className={`text-xs font-bold ${data.progress === 100 ? 'text-emerald-600' : 'text-slate-500'} print:text-black`}>
                                     {data.progress}%
                                   </span>
                                 </div>
                                 
                                 <div className="space-y-2">
-                                  <div className="w-full bg-white/50 rounded-full h-1.5 overflow-hidden">
+                                  <div className="w-full bg-white/50 rounded-full h-1.5 overflow-hidden print:border print:border-slate-300">
                                     <div 
-                                      className={`h-full rounded-full ${data.progress === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`} 
-                                      style={{ width: `${data.progress}%` }}
+                                      className={`h-full rounded-full ${data.progress === 100 ? 'bg-emerald-500' : 'bg-blue-500'} print:bg-slate-800`} 
+                                      style={{ width: `${data.progress}%`, printColorAdjust: 'exact' }}
                                     />
                                   </div>
                                   {data.remarks && (
-                                    <p className="text-[10px] text-red-600 font-medium leading-tight border-t border-red-200/50 pt-1 mt-1 break-words whitespace-pre-wrap">
+                                    <p className="text-[10px] text-red-600 font-medium leading-tight border-t border-red-200/50 pt-1 mt-1 break-words whitespace-pre-wrap print:text-slate-700 print:border-slate-300">
                                       {data.remarks}
                                     </p>
                                   )}
@@ -463,7 +486,7 @@ const App: React.FC = () => {
                               isAdmin ? (
                                 <button
                                   onClick={() => handleCellClick(name, part)}
-                                  className="w-full h-full min-h-[120px] border-2 border-dashed border-slate-100 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/50 transition-all gap-1 group"
+                                  className="w-full h-full min-h-[120px] border-2 border-dashed border-slate-100 rounded-xl flex flex-col items-center justify-center text-slate-300 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/50 transition-all gap-1 group print:hidden"
                                 >
                                   <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                   <span className="text-xs font-medium">Add</span>
@@ -479,7 +502,7 @@ const App: React.FC = () => {
                       })}
                       {/* Only show delete button column if Admin */}
                       {isAdmin && (
-                        <td className="px-4 py-4 text-center">
+                        <td className="px-4 py-4 text-center print:hidden">
                           <button 
                             onClick={() => handleDeleteGroup(name)}
                             className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
