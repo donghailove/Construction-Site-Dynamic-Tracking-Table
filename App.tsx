@@ -286,10 +286,13 @@ const App: React.FC = () => {
       <nav className={`sticky top-0 z-30 border-b px-6 py-3 shadow-sm backdrop-blur-md transition-colors ${isAdmin ? 'bg-amber-50/90 border-amber-200' : 'bg-white/80 border-slate-200'}`}>
         <div className="w-full flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <div className="bg-blue-600 p-2 rounded-lg">
-              <LayoutDashboard className="w-5 h-5 text-white" />
+            {/* Logo and Title Restored */}
+            <div className="flex items-center gap-2 mr-2">
+              <div className="bg-blue-600 p-1.5 rounded-lg">
+                <LayoutDashboard className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-xl text-slate-800 tracking-tight hidden md:block">SiteTrack Pro</span>
             </div>
-            <h1 className="text-xl font-bold text-slate-800 tracking-tight">SiteTrack Pro</h1>
             
             {/* Sync Status Indicator */}
             <button 
@@ -350,13 +353,7 @@ const App: React.FC = () => {
                </button>
              )}
 
-             <button 
-              onClick={handleGenerateReport}
-              className="flex items-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI Report
-            </button>
+             {/* AI Report Button Hidden */}
           </div>
         </div>
       </nav>
